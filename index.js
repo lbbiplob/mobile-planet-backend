@@ -25,7 +25,8 @@ const client = new MongoClient(uri, {
 const run = async () => {
   try {
     const usersCollection = client.db("mobileDB").collection("users");
-
+    const categoriesCollection = client.db("mobileDB").collection("categories");
+    const productsCollection = client.db("mobileDB").collection("products");
     app.get("/jwt", async (req, res) => {
       const email = req.query.email;
       const query = { email: email };
@@ -39,10 +40,20 @@ const run = async () => {
       }
       res.status(403).send({ accessToken: " " });
     });
-
+    app.get("/categories", async (req, res) => {
+      const query = {};
+      const cursor = categoriesCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
     app.post("/users", async (req, res) => {
       const user = req.body;
       const result = await usersCollection.insertOne(user);
+      res.send(result);
+    });
+    app.post("/products", async (req, res) => {
+      const product = req.body;
+      const result = await productsCollection.insertOne(product);
       res.send(result);
     });
 
