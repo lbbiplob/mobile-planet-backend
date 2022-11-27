@@ -57,11 +57,30 @@ const run = async () => {
       res.send(result);
     });
     app.get("/products", async (req, res) => {
-      const query = {};
+      let query = {};
+      if (req.query.email) {
+        query = {
+          email: req.query.email,
+        };
+      }
       const cursor = productsCollection.find(query);
       const result = await cursor.toArray();
       res.send(result);
     });
+    app.delete("/products/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+
+      const result = await productsCollection.deleteOne(filter);
+      res.send(result);
+    });
+    // app.get("/products/:id", async (req, res) => {
+    //   const id = req.query.id;
+    //   const query = { id };
+    //   const products = productsCollection.find(email);
+    //   const result = await products.toArray();
+    //   res.send(result);
+    // });
 
     app.get("/users/seller/:email", async (req, res) => {
       const email = req.params.email;
