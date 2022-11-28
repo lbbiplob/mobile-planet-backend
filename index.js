@@ -27,6 +27,8 @@ const run = async () => {
     const usersCollection = client.db("mobileDB").collection("users");
     const categoriesCollection = client.db("mobileDB").collection("categories");
     const productsCollection = client.db("mobileDB").collection("products");
+    const bookingsCollection = client.db("mobileDB").collection("bookings");
+    const advertiseCollection = client.db("mobileDB").collection("advertise");
     app.get("/jwt", async (req, res) => {
       const email = req.query.email;
       const query = { email: email };
@@ -46,6 +48,14 @@ const run = async () => {
       const result = await cursor.toArray();
       res.send(result);
     });
+    app.get("/category/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = {};
+      const data = await productsCollection.find(query).toArray();
+      const result = data.filter((product) => product.categoryId === id);
+      console.log(result);
+      res.send(result);
+    });
     app.post("/users", async (req, res) => {
       const user = req.body;
       const result = await usersCollection.insertOne(user);
@@ -54,6 +64,11 @@ const run = async () => {
     app.post("/products", async (req, res) => {
       const product = req.body;
       const result = await productsCollection.insertOne(product);
+      res.send(result);
+    });
+    app.post("/booking", async (req, res) => {
+      const product = req.body;
+      const result = await bookingsCollection.insertOne(product);
       res.send(result);
     });
     app.get("/products", async (req, res) => {
@@ -66,6 +81,22 @@ const run = async () => {
       const cursor = productsCollection.find(query);
       const result = await cursor.toArray();
       res.send(result);
+    });
+    app.put("/products/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const status = req.body.status;
+      const option = { upsert: true };
+      const updateStatus = {
+        $set: {
+          status,
+        },
+      };
+      const result = await productsCollection.updateOne(
+        filter,
+        updateStatus,
+        option
+      );
     });
     app.delete("/products/:id", async (req, res) => {
       const id = req.params.id;
@@ -81,12 +112,22 @@ const run = async () => {
     //   const result = await products.toArray();
     //   res.send(result);
     // });
+    // app.post("/advertise", async (req, res) => {
+    //   const user = req.body;
+    //   const result = await advertiseCollection.insertOne(user);
+    //   res.send(result);
+    // });
+    // app.get("/advertise", async (req, res) => {
+    //   const query = {};
+    //   const cursor = advertiseCollection.find(query);
+    //   const result = await cursor.toArray();
+    //   res.send(result);
+    // });
 
     app.get("/users/seller/:email", async (req, res) => {
       const email = req.params.email;
       const query = { email };
       const user = await usersCollection.findOne(query);
-      console.log(user);
       res.send({ isSeller: user?.userType === "Seller" });
     });
   } finally {
