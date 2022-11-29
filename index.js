@@ -29,6 +29,7 @@ const run = async () => {
     const categoriesCollection = client.db("mobileDB").collection("categories");
     const productsCollection = client.db("mobileDB").collection("products");
     const bookingsCollection = client.db("mobileDB").collection("bookings");
+    const reportedCollection = client.db("mobileDB").collection("reported");
     const advertiseCollection = client.db("mobileDB").collection("advertise");
     const paymentCollection = client.db("mobileDB").collection("payment");
     app.get("/jwt", async (req, res) => {
@@ -63,9 +64,63 @@ const run = async () => {
       const result = await usersCollection.insertOne(user);
       res.send(result);
     });
+    app.delete("/users/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const result = await usersCollection.deleteOne(filter);
+      res.send(result);
+    });
+    app.put("/users/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const option = { upsert: true };
+
+      const updateStatus = {
+        $set: {
+          verify: true,
+        },
+      };
+      const result = await usersCollection.updateOne(
+        filter,
+        updateStatus,
+        option
+      );
+
+      res.send(result);
+    });
+    app.get("/users/sellers", async (req, res) => {
+      const query = {};
+      const users = await usersCollection.find(query).toArray();
+      const result = users.filter((user) => user?.userType === "Seller");
+      res.send(result);
+    });
+    app.get("/users/buyers", async (req, res) => {
+      const query = {};
+      const users = await usersCollection.find(query).toArray();
+      const result = users.filter((user) => user?.userType === "Buyer");
+      res.send(result);
+    });
     app.post("/products", async (req, res) => {
       const product = req.body;
       const result = await productsCollection.insertOne(product);
+      res.send(result);
+    });
+    app.post("/reported", async (req, res) => {
+      const product = req.body;
+      const result = await reportedCollection.insertOne(product);
+      res.send(result);
+    });
+    app.get("/reported", async (req, res) => {
+      const query = {};
+      const result = await reportedCollection.find(query).toArray();
+      res.send(result);
+    });
+    app.delete("/reported/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const query = { _id: id };
+      const result = await productsCollection.deleteOne(filter);
+      const update = await reportedCollection.deleteOne(query);
       res.send(result);
     });
     app.post("/booking", async (req, res) => {
